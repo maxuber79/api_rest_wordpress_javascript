@@ -10,35 +10,66 @@ const $site = d.getElementById('site'),
 			DOMAIN = 'http://localhost/elev',
 			SITE = `${DOMAIN}/wp-json`,
 			API_WP = `${SITE}/wp/v2`,
-			POSTS = `${API_WP}/posts?_embed=true`,
+			POSTS = `${API_WP}/posts?_embed`, 
 			PAGES = `${API_WP}/pages`,
 			CATEGORIES = `${API_WP}/categories`;
 
 const state = {
 	page: 1,
-	perPage: 5
+	perPage: 5,
+	totalPages: 3 
 };
 
+const pagesTotales = async() => {
+	try {
+		const totalPosts = await fetch(`${POSTS}&page=${state.page}&per_page=${state.perPage}`);
+		if( totalPosts.status === 200) {
+			const data = await totalPosts.json();
+				console.log('%cHTTP request | All PAGES ==>', 'background:#fd7e14; color: #FFFFFF; padding: 2px 5px;', data);
+				// Obtener el número total de páginas desde los encabezados de respuesta
+        const totalPages = totalPosts.headers.get('X-WP-TotalPages');
+				console.log('total de pages ===>',totalPages );		
+		} else {
+
+		}
+	} catch (error) {
+		if (error instanceof TypeError && error.message.includes("Failed to fetch")) {
+        // Manejar errores de conexión (puede ser un problema CORS)
+    } else {
+        Swal.fire({
+				title: 'Error!',
+				text: 'Hay un error en obtener los page totales',
+				icon: 'error',
+				confirmButtonText: 'Salir'
+			});
+		console.error('hay un error en la api', error);
+	}
+	}
+}
+window.addEventListener('load', pagesTotales);
 
 let observador = new IntersectionObserver( (posts, observador)=> {
-
+const mensaje = d.querySelector('.d-none');
 	console.log(posts);
 	posts.forEach( el => {
 		if(el.isIntersecting) {
-			state.page++;
-			 getPosts();
+			let totalPages = 3;
+			if (state.page < totalPages) {
+					state.page++;
+					getPosts();
+			} else {
+				d.querySelector('.d-none').className += 'd-block';
+			}
+			/* state.page++;
+			 getPosts(); */
 		}
 	})
 
 
 }, {
 	rootMargin: '0px 0px 0px 0px',
-	threshold: 1.0
+	threshold: 1
 });
-
-
-
-
 
 //console.log($site,$posts,$loader,DOMAIN,SITE,API_WP,POSTS,PAGES,CATEGORIES );
  const getSiteData = async() => {
@@ -50,6 +81,7 @@ let observador = new IntersectionObserver( (posts, observador)=> {
 		if( resp.status === 200) {
 			const data = await resp.json();
 			console.log('%c[DESPUES] HTTP request | data:', 'background:#fd7e14; color: #FFFFFF; padding: 2px 5px;', data);
+			
 
 			$site.innerHTML = `<h1 class="display-5 fw-normal">Sitio Web</h1><h2><a href="${data.url}" target="_black">${data.name}</a></h2><p class="col-lg-8 mx-auto lead">${data.description}</p><p>${data.timezone_string}</p>`;
 
@@ -57,14 +89,42 @@ let observador = new IntersectionObserver( (posts, observador)=> {
 
 		} else if( resp.status === 401 ) {
 			console.error('el error de conexión 401');
+			Swal.fire({
+				title: 'Error!',
+				text: 'Hay un error 401 getSiteData',
+				icon: 'error',
+				confirmButtonText: 'Salir'
+			});
 		} else if(  resp.status === 404) {
+			Swal.fire({
+				title: 'Error!',
+				text: 'Hay un error 404 getSiteData',
+				icon: 'error',
+				confirmButtonText: 'Salir'
+			});
 			console.error('la información no existe 404');
 		} else {
-			console.error('hubo un error y no se sabe que paso');
+			Swal.fire({
+				title: 'Error!',
+				text: 'Hubo un error y no se sabe que paso getSiteData',
+				icon: 'error',
+				confirmButtonText: 'Salir'
+			});
+			console.error('hubo un error y no se sabe que paso ');
 		}
 
 	} catch (error) {
+		if (error instanceof TypeError && error.message.includes("Failed to fetch")) {
+        // Manejar errores de conexión (puede ser un problema CORS)
+    } else {
+        Swal.fire({
+				title: 'Error!',
+				text: 'No hay conexión a la Api de Wordpress getSiteData',
+				icon: 'error',
+				confirmButtonText: 'Salir'
+			});
 		console.error('hay un error en la api', error);
+    } 
 	}
 	
 }
@@ -75,11 +135,14 @@ console.log('%c<<< Start function  getPosts >>>', 'background: #20c997; color: #
 
 	try {
 			const respPosts = await fetch(`${POSTS}&page=${state.page}&per_page=${state.perPage}`);
+			
 			console.log('%cHTTP request API POSTS ==>', 'background:#d1e7dd; color: #0a3622; padding: 2px 5px;', respPosts);
-
+			
 			if( respPosts.status === 200) {
 				const data = await respPosts.json();
 				console.log('%cHTTP request | All POSTS ==>', 'background:#fd7e14; color: #FFFFFF; padding: 2px 5px;', data);
+
+				
 
 				if( data.length >= 0 ) {
 					data.forEach( el => {
@@ -124,7 +187,7 @@ console.log('%c<<< Start function  getPosts >>>', 'background: #20c997; color: #
 				});
 					
 				$posts.appendChild($fragment);
-				const postsEnPantalla = document.querySelectorAll('.grid .grid-item .card');
+				const postsEnPantalla = document.querySelectorAll('.grid .grid-item');
 				//console.log('postsEnPantalla ==>',postsEnPantalla);
 				let ultimoPost = postsEnPantalla[postsEnPantalla.length - 1]
 				console.log('ultimoPost ==>',ultimoPost);
@@ -143,14 +206,43 @@ console.log('%c<<< Start function  getPosts >>>', 'background: #20c997; color: #
 
 			} else if( respPosts.status === 401 ) {
 				console.error('el error de conexión 401');
+					Swal.fire({
+						title: 'Error!',
+						text: 'Hay un error de tipo 401 getPosts',
+						icon: 'error',
+						confirmButtonText: 'Salir'
+					});
 			} else if(  respPosts.status === 404) {
+				Swal.fire({
+						title: 'Error!',
+						text: 'Hay un error de tipo 404 getPosts',
+						icon: 'error',
+						confirmButtonText: 'Salir'
+					});
 				console.error('la información no existe 404');
 			} else {
-				console.error('hubo un error y no se sabe que paso');
+				console.error('hubo un error y no se sabe que paso getPosts');
+				Swal.fire({
+						title: 'Error!',
+						text: 'Hubo un error y no se sabe que paso getPosts',
+						icon: 'error',
+						confirmButtonText: 'Salir'
+					});
 			}
 
 	} catch (error) {
+		if (error instanceof TypeError && error.message.includes("Failed to fetch")) {
+        // Manejar errores de conexión (puede ser un problema CORS)
+    } else {
+        Swal.fire({
+				title: 'Error!',
+				text: 'Hay un error en obtener los posts',
+				icon: 'error',
+				confirmButtonText: 'Salir'
+			});
 		console.error('hay un error en la api', error);
+    } 
+	
 	}
 
 }
@@ -172,6 +264,8 @@ function masonryPosts() {
 		masonry.layout();
 	});
 }
+
+
 
 /* const srollInfinito = w.addEventListener('scroll', e => {
 	console.log('%c<<< Start function  scroll >>>', 'background: #20c997; color: #fff; padding: 2px 5px;');
