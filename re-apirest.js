@@ -7,7 +7,7 @@ const $site = d.getElementById('site'),
 			$loader = d.querySelector('.loader'),
 			$template = d.getElementById('post-template').content,
 			$fragment = d.createDocumentFragment(),
-			DOMAIN = 'http://localhost/elev',
+			DOMAIN = 'http://localhost/elev/',
 			SITE = `${DOMAIN}/wp-json`,
 			API_WP = `${SITE}/wp/v2`,
 			POSTS = `${API_WP}/posts?_embed`, 
@@ -20,14 +20,17 @@ const state = {
 	totalPages: 3 
 };
 
+var totalPages = '';
+
 const pagesTotales = async() => {
+	console.log('%c<<< Start function pagesTotales >>>', 'background: #20c997; color: #fff; padding: 2px 5px;');
 	try {
 		const totalPosts = await fetch(`${POSTS}&page=${state.page}&per_page=${state.perPage}`);
 		if( totalPosts.status === 200) {
 			const data = await totalPosts.json();
 				console.log('%cHTTP request | All PAGES ==>', 'background:#fd7e14; color: #FFFFFF; padding: 2px 5px;', data);
 				// Obtener el número total de páginas desde los encabezados de respuesta
-        const totalPages = totalPosts.headers.get('X-WP-TotalPages');
+        totalPages = totalPosts.headers.get('X-WP-TotalPages');
 				console.log('total de pages ===>',totalPages );		
 		} else {
 
@@ -46,14 +49,13 @@ const pagesTotales = async() => {
 	}
 	}
 }
-window.addEventListener('load', pagesTotales);
+//window.addEventListener('DOMContentLoaded', pagesTotales);
 
 let observador = new IntersectionObserver( (posts, observador)=> {
 const mensaje = d.querySelector('.d-none');
 	console.log(posts);
 	posts.forEach( el => {
-		if(el.isIntersecting) {
-			let totalPages = 3;
+		if(el.isIntersecting) { 
 			if (state.page < totalPages) {
 					state.page++;
 					getPosts();
@@ -61,14 +63,17 @@ const mensaje = d.querySelector('.d-none');
 				d.querySelector('.d-none').className += 'd-block';
 			}
 			/* state.page++;
-			 getPosts(); */
+			getPosts(); */
 		}
 	})
 
 
 }, {
-	rootMargin: '0px 0px 0px 0px',
-	threshold: 1
+	root: null, // default, use viewport
+  rootMargin: '100px 0px 100px 0px',
+  threshold: 0.5 // half of item height
+	/* rootMargin: '0px 0px 0px 0px',
+	threshold: 1 */
 });
 
 //console.log($site,$posts,$loader,DOMAIN,SITE,API_WP,POSTS,PAGES,CATEGORIES );
@@ -128,7 +133,7 @@ const mensaje = d.querySelector('.d-none');
 	}
 	
 }
-window.addEventListener('load', getSiteData);
+//window.addEventListener('DOMContentLoaded', getSiteData);
 
 const getPosts = async() => {
 console.log('%c<<< Start function  getPosts >>>', 'background: #20c997; color: #fff; padding: 2px 5px;');
@@ -246,7 +251,7 @@ console.log('%c<<< Start function  getPosts >>>', 'background: #20c997; color: #
 	}
 
 }
-window.addEventListener('load', getPosts);
+//window.addEventListener('DOMContentLoaded', getPosts);
 
 function masonryPosts() {
 	// Ejemplo de inicialización de Masonry
@@ -265,7 +270,11 @@ function masonryPosts() {
 	});
 }
 
-
+d.addEventListener('DOMContentLoaded', e => {		
+	pagesTotales();			
+	getSiteData();
+	getPosts(); 
+})
 
 /* const srollInfinito = w.addEventListener('scroll', e => {
 	console.log('%c<<< Start function  scroll >>>', 'background: #20c997; color: #fff; padding: 2px 5px;');
