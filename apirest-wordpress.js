@@ -22,6 +22,41 @@ const state = {
 var totalPages = '';
 let post = '';
 let ultimoPost;
+
+
+
+/* const getLogo = () => {
+	//'http://tu-sitio.com/wp-json/wp/v2/tipo_de_contenido/ID_del_post'
+	fetch(SITE)
+  .then(response => response.json())
+  .then(data => {
+    // Accede a la URL del logo del sitio desde el objeto de medios destacados
+    const featuredMediaUrl = data._links['wp:featuredmedia'][0].href;
+
+		//let logo = data._links['wp:featuredmedia'][0].href; 
+			console.log('site_logo', featuredMediaUrl) 
+
+    // Haz otra solicitud para obtener los detalles del medio destacado
+    return fetch(featuredMediaUrl);
+  })
+  .then(response => response.json())
+  .then(mediaData => {
+    // Accede a la URL del archivo del medio destacado (logo del sitio)
+    const logoUrl = mediaData.media_details.sizes.full.source_url;
+		
+    // Haz algo con la URL del logo, por ejemplo, imprímelo en la consola
+    console.log('URL del logo del sitio:', logoUrl);
+
+
+		$site.innerHTML = `<img src="${logoUrl}" alt="" class="">`;
+
+
+  })
+  .catch(error => console.error('Error al obtener la URL del logo:', error));
+
+}
+window.addEventListener('DOMContentLoaded', getLogo); */
+
 const pagesTotales = async() => {
 	console.log('%c<<< Start function pagesTotales >>>', 'background: #20c997; color: #fff; padding: 2px 5px;');
 	try {
@@ -35,19 +70,22 @@ const pagesTotales = async() => {
         totalPages = totalPosts.headers.get('X-WP-TotalPages');
 				console.info('%ctotal de pages ===>', 'background:#0d6efd; color: #fff; padding: 2px 5px;',totalPages );		
 		} else {
+			alertaSwal('Error!', 'hay un error en la api', 'error', 'Salir');	
 			console.error('hay un error en la api', error.message);
 		}
 	} catch (error) {
 		if (error instanceof TypeError && error.message.includes("Failed to fetch")) {
         // Manejar errores de conexión (puede ser un problema CORS)
+				alertaSwal('Error!', 'Failed to fetch', 'error', 'Salir');
     } else {
-        Swal.fire({
+			alertaSwal('Error!', 'Failed to fetch', 'error', 'Salir');	
+      /*   Swal.fire({
 				title: 'Error!',
 				text: 'Hay un error en obtener los page totales',
 				icon: 'error',
 				confirmButtonText: 'Salir'
-			});
-		console.error('hay un error en la api', error);
+			}); */
+		console.error('hay un error en la api', error.message);
 	}
 	}
 }
@@ -65,9 +103,7 @@ const mensaje = d.querySelector('.d-none');
 				d.querySelector('.d-none').className += 'd-block';
 			} 
 		}
-	})
-
-
+	});
 }, {
 	root: null, // default, use viewport
    rootMargin: '100px 0px 100px 0px',
@@ -76,59 +112,53 @@ const mensaje = d.querySelector('.d-none');
 	threshold: 1   */
 });
 
- const getSiteData = async() => {
-	console.log('%c<<< Start function getSiteData >>>', 'background: #20c997; color: #fff; padding: 2px 5px;');
-	try {
-		const resp = await fetch(SITE);
-		console.log('%c[DESPUES] HTTP request | resp:', 'background:#d1e7dd; color: #0a3622; padding: 2px 5px;', resp);
+const getSiteData = async () => {
+    console.log('%c<<< Start function getSiteData >>>', 'background: #20c997; color: #fff; padding: 2px 5px;');
+    
+    try {
+        const resp = await fetch(SITE);
+				console.log('%c[DESPUES] HTTP request | resp:', 'background:#d1e7dd; color: #0a3622; padding: 2px 5px;', resp);
 
-		if( resp.status === 200) {
-			const data = await resp.json();
-			console.log('%c[DESPUES] HTTP request | data:','background:#d1e7dd; color: #0a3622; padding: 2px 5px;', data);
-			
+        if (resp.status === 200) {
+            const data = await resp.json();
+            console.log('%c[DESPUES] HTTP request | data:', 'background:#d1e7dd; color: #0a3622; padding: 2px 5px;', data);
 
-			$site.innerHTML = `<h1 class="display-5 fw-normal">Sitio Web</h1><h2><a href="${data.url}" target="_black">${data.name}</a></h2><p class="col-lg-8 mx-auto lead">${data.description}</p><p>${data.timezone_string}</p>`;
+            // Obtener info site_logo
+            const featuredMediaUrl = data._links['wp:featuredmedia'][0].href;
+            console.log('json data site_logo ===>', featuredMediaUrl);
 
-		} else if( resp.status === 401 ) {
-			console.error('el error de conexión 401');
-			Swal.fire({
-				title: 'Error!',
-				text: 'Hay un error 401 getSiteData',
-				icon: 'error',
-				confirmButtonText: 'Salir'
-			});
-		} else if(  resp.status === 404) {
-			Swal.fire({
-				title: 'Error!',
-				text: 'Hay un error 404 getSiteData',
-				icon: 'error',
-				confirmButtonText: 'Salir'
-			});
-			console.error('la información no existe 404');
-		} else {
-			Swal.fire({
-				title: 'Error!',
-				text: 'Hubo un error y no se sabe que paso getSiteData',
-				icon: 'error',
-				confirmButtonText: 'Salir'
-			});
-			console.error('hubo un error y no se sabe que paso ');
-		}
+            const mediaResponse = await fetch(featuredMediaUrl);
 
-	} catch (error) {
-		if (error instanceof TypeError && error.message.includes("Failed to fetch")) {
-        // Manejar errores de conexión (puede ser un problema CORS)
-    } else {
-        Swal.fire({
-				title: 'Error!',
-				text: 'No hay conexión a la Api de Wordpress getSiteData',
-				icon: 'error',
-				confirmButtonText: 'Salir'
-			});
-		console.error('hay un error en la api', error);
-    } 
-	}
-	
+            if (mediaResponse.ok) {
+                const mediaData = await mediaResponse.json();
+                const logoUrl = mediaData.media_details.sizes.full.source_url;
+                console.log('json data mediaData ===>', logoUrl);
+
+                $site.innerHTML = `<img src="${logoUrl}" alt="" class="" style="display: inline-block;height: 100px;margin: 1rem 0;"><h1 class="display-5 fw-normal">Sitio Web</h1><h2><a href="${data.url}" target="_black">${data.name}</a></h2><p class="col-lg-8 mx-auto lead">${data.description}</p><p>${data.timezone_string}</p>`;
+            } else {
+                alertaSwal('Error!', 'Hubo un error al llamar a la info site_logo', 'error', 'Salir');
+            }
+
+        } else if (resp.status === 401) {
+            console.error('Error de conexión 401');
+            alertaSwal('Error!', 'Hay un error 401 getSiteData', 'error', 'Salir');
+
+        } else if (resp.status === 404) {
+            alertaSwal('Error!', 'Hay un error 404 getSiteData', 'error', 'Salir');
+            console.error('La información no existe 404');
+
+        } else {
+            alertaSwal('Error!', 'Hubo un error y no se sabe qué pasó getSiteData', 'error', 'Salir');
+            console.error('Hubo un error y no se sabe qué pasó');
+        }
+    } catch (error) {
+        if (error instanceof TypeError && error.message.includes("Failed to fetch")) {
+            // Manejar errores de conexión (puede ser un problema CORS)
+        } else {
+					alertaSwal('Error!', 'No hay conexión a la Api de Wordpress getSiteData', 'error', 'Salir');
+					console.error('Hay un error en la API', error);
+        }
+    }
 }
 //window.addEventListener('DOMContentLoaded', getSiteData);
 
