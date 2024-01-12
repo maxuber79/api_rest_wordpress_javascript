@@ -8,7 +8,7 @@ Links de referencia API
 - [WordPress REST API](http://developer.wordpress.org/rest-api)
 - [WP REST API plugin](https://github.com/WP-API/WP-API)
 
-El proyecto está compuesto por dos archivos, lo cuales son:
+El proyecto está compuesto por dos archivos, los cuales son:
 
 - Test-apirest-wordpress-sintemplate.html
 - Test-apirest-wordpress-template.html
@@ -28,14 +28,14 @@ Para poder realizar el scroll infinito personalizado con los post, se deberá ca
 const d = document;
 const w = window;
 const $site = d.getElementById('site'),
-			$posts = d.getElementById('posts'),
-			$loader = d.querySelector('.loader'), 
-			$template = d.getElementById('posts'),
-			DOMAIN = 'http://misitio.cl',
-			SITE = `${DOMAIN}/wp-json`,
-			API_WP = `${SITE}/wp/v2`,
-			POSTS = `${API_WP}/posts?_embed`, 
-			PAGES = `${API_WP}/pages`,
-			CATEGORIES = `${API_WP}/categories`;
+	$posts = d.getElementById('posts'),
+	$loader = d.querySelector('.loader'), 
+	$template = d.getElementById('posts'),
+	DOMAIN = 'http://misitio.cl',
+	SITE = `${DOMAIN}/wp-json`,
+	API_WP = `${SITE}/wp/v2`,
+	POSTS = `${API_WP}/posts?_embed`, 
+	PAGES = `${API_WP}/pages`,
+	CATEGORIES = `${API_WP}/categories`;
 
 ```
